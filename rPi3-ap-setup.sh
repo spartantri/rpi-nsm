@@ -25,7 +25,7 @@ if [[ $# -eq 1 ]]; then
 fi
 
 apt-get remove --purge hostapd -y
-apt-get install -y hostapd dnsmasq udhcpd
+apt-get install -y hostapd dnsmasq 
 
 cat > /etc/systemd/system/hostapd.service <<EOF
 [Unit]
@@ -44,8 +44,16 @@ WantedBy=multi-user.target
 EOF
 
 cat > /etc/dnsmasq.conf <<EOF
-interface=wlan0
+interface=wlan1
+log-facility=/var/log/dnsmasq.log
+log-queries
 dhcp-range=10.3.2.100,10.3.2.250,255.255.255.0,12h
+dhcp-option=3,10.3.2.1
+dhcp-option=6,10.3.2.1
+server=216.146.35.35
+server=8.26.56.26
+server=8.20.247.20
+
 EOF
 
 cat > /etc/hostapd/hostapd.conf <<EOF
@@ -82,19 +90,21 @@ echo "denyinterfaces wlan1" >> /etc/dhcpcd.conf
 
 systemctl enable hostapd
 
-mv /etc/udhcpd.conf /etc/udhcpd.conf.orig
-cat > /etc/udhcpd.conf <<EOF
+##mv /etc/udhcpd.conf /etc/udhcpd.conf.orig
+##cat > /etc/udhcpd.conf <<EOF
 
-start 10.3.2.100 # This is the range of IPs that the hostspot will give to client devices.
-end 10.3.2.250
-interface wlan1 # The device uDHCP listens on.
-remaining yes
-opt dns 216.146.35.35 8.26.56.26 # The DNS servers client devices will use.
-opt subnet 255.255.255.0
-opt router 10.3.2.1 # The Pi's IP address on wlan0 which we will set up shortly.
-opt lease 864000 # 10 day DHCP lease time in seconds
+##start 10.3.2.100 # This is the range of IPs that the hostspot will give to client devices.
+##end 10.3.2.250
+##interface wlan1 # The device uDHCP listens on.
+##remaining yes
+##lease_file     /var/lib/misc/udhcpd.leases
+##pidfile        /var/run/udhcpd.pid 
+##opt dns 216.146.35.35 8.26.56.26 # The DNS servers client devices will use.
+##opt subnet 255.255.255.0
+##opt router 10.3.2.1 # The Pi's IP address on wlan0 which we will set up shortly.
+##opt lease 864000 # 10 day DHCP lease time in seconds
 
-EOF
+##EOF
 
 sed -i -- 's,#DAEMON_CONF.*,DAEMON_CONF="/etc/hostapd/hostapd.conf",g' /etc/default/hostapd
 
@@ -107,8 +117,8 @@ iptables -A FORWARD -i wlan1 -o eth0 -j ACCEPT
 sh -c "iptables-save > /etc/iptables.ipv4.nat"
 echo "up iptables-restore < /etc/iptables.ipv4.nat" >> /etc/network/interfaces
 
-service udhcpd start
-update-rc.d hostapd enable
-update-rc.d udhcpd enable
+##service udhcpd start
+##update-rc.d hostapd enable
+##update-rc.d udhcpd enable
 
 echo "All done! Please reboot"
