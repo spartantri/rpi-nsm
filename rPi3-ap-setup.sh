@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # This version uses September 2016 rpi jessie image, please use this image
-#
+# based on https://gist.github.com/Lewiscowles1986/fecd4de0b45b2029c390
 
 if [ "$EUID" -ne 0 ]
 	then echo "Must be root"
@@ -9,7 +9,7 @@ if [ "$EUID" -ne 0 ]
 fi
 
 if [[ $# -lt 1 ]]; 
-	then echo "Will proceed with default SSID!"
+	then echo "Will proceed with default rPi3 SSID!"
 	echo "Usage:"
 	echo "sudo $0 [apName]"
 	#exit
