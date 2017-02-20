@@ -69,8 +69,8 @@ cat >> /etc/network/interfaces <<EOF
 	wpa-conf /etc/wpa_supplicant/wpa_supplicant.conf
 
 # Added by rPi Access Point Setup
-allow-hotplug wlan0
-iface wlan0 inet static
+allow-hotplug wlan1
+iface wlan1 inet static
 	address 10.3.2.1
 	netmask 255.255.255.0
 	network 10.3.2.0
