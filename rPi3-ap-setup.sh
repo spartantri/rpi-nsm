@@ -12,7 +12,9 @@ if [[ $# -lt 1 ]];
 	then echo "Will proceed with default rPi3 SSID!"
 	echo "Usage:"
 	echo "sudo $0 [apName]"
-	#exit
+        echo "Installation will start in 30 seconds, press <CTRL+C> to cancel..."
+	sleep 30
+        #exit
 fi
 
 IFS= read -s  -p Password: APPASS
@@ -114,6 +116,11 @@ sed -i -- 's,#net.ipv4.ip_forward=.*,net.ipv4.ip_forward=1,g' /etc/sysctl.conf
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 iptables -A FORWARD -i eth0 -o wlan1 -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -i wlan1 -o eth0 -j ACCEPT
+iptables -A INPUT ! -s 10.3.2.1/24 -p tcp -m multiport --dports 53,514 -m state --state NEW,ESTABLISHED -j REJECT
+iptables -A INPUT ! -s 127.0.0.1/8 -p tcp -m multiport --dports 9200,9300 -m state --state NEW,ESTABLISHED -j REJECT
+iptables -t nat -A PREROUTING -p tcp --dport 80 -i eth0 -j DNAT --to 127.0.0.1:8080
+iptables -t nat -A PREROUTING -p tcp --dport 443 -i eth0 -j DNAT --to 127.0.0.1:8443
+iptables -t nat -A POSTROUTING -s 10.3.2.1/24 -o eth0 -j MASQUERADE
 sh -c "iptables-save > /etc/iptables.ipv4.nat"
 echo "up iptables-restore < /etc/iptables.ipv4.nat" >> /etc/network/interfaces
 
